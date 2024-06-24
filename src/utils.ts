@@ -2,9 +2,32 @@ import axios, {AxiosError, AxiosHeaders, AxiosInstance, InternalAxiosRequestConf
 import {WebDriver} from 'selenium-webdriver/lib/webdriver';
 import {Browser, Builder, By, until} from 'selenium-webdriver';
 import fireFox from 'selenium-webdriver/firefox';
+import fs from 'fs';
+import os from 'os';
 
 const USER_ID = process.env.USER_ID;
 const PASSWORD = process.env.PASSWORD;
+
+export const delay = (ms: number) => new Promise((resolve) => {
+  setTimeout(resolve, ms);
+});
+
+function setEnvValue(key, value) {
+
+  // read file from hdd & split if from a linebreak to a array
+  const ENV_VARS = fs.readFileSync("./.env", "utf8").split(os.EOL);
+
+  // find the env we want based on the key
+  const target = ENV_VARS.indexOf(<string>ENV_VARS.find((line) => {
+    return line.match(new RegExp(key));
+  }));
+
+  // replace the key/value with the new value
+  ENV_VARS.splice(target, 1, `${key}=${value}`);
+
+  // write everything back to the file system
+  fs.writeFileSync("./.env", ENV_VARS.join(os.EOL));
+}
 
 const option = {
   baseURL: 'https://api.powerbi.com/v1.0',
@@ -12,23 +35,14 @@ const option = {
 export const request: AxiosInstance = axios.create(option);
 
 export const setToken = (token) => {
-  request.interceptors.request.use( (config: InternalAxiosRequestConfig) => {
-    const headers = new AxiosHeaders({
-      ...config.headers,
-      Authorization: `Bearer ${token}`,
-    });
-    return {
-      ...config,
-      headers,
-    };
-  });
+  request.defaults.headers.common['Authorization'] = `Bearer ${token}`;
 };
 
 const errorHandler = async (error: AxiosError) => {
   const { response } = error;
   if (response) {
     if (response.status === 403) {
-      setToken(await createToken());
+      throw new Error('403');
     }
   }
 
@@ -91,7 +105,9 @@ export const createToken = async () => {
     await pageLoaded(driver);
 
     // 관리자 콘솔에서 토큰 정보 리턴
-    return await driver.executeScript('return powerBIAccessToken');
+    const token = await driver.executeScript('return powerBIAccessToken');
+    setEnvValue('TOKEN', token);
+    return token;
   } finally {
     if (await driverIsAlive(driver)) {
       await driver.quit();
