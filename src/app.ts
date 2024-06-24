@@ -1,93 +1,13 @@
-import axios from 'axios';
-import { Builder, Browser, By, until } from 'selenium-webdriver';
-import fireFox from 'selenium-webdriver/firefox.js';
+import {apiTest} from './apiTest';
+import {setToken} from './utils';
 
+const testToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsIng1dCI6InE3UDFOdnh1R1F3RE4yVGFpTW92alo4YVp3cyIsImtpZCI6InE3UDFOdnh1R1F3RE4yVGFpTW92alo4YVp3cyJ9.eyJhdWQiOiJodHRwczovL2FuYWx5c2lzLndpbmRvd3MubmV0L3Bvd2VyYmkvYXBpIiwiaXNzIjoiaHR0cHM6Ly9zdHMud2luZG93cy5uZXQvM2I4ZGVlOTEtZDkwZi00N2FlLTg0ZDMtNDQxMmJiMDVmODVmLyIsImlhdCI6MTcxOTE5MTgwMywibmJmIjoxNzE5MTkxODAzLCJleHAiOjE3MTkxOTY1NTAsImFjY3QiOjAsImFjciI6IjEiLCJhaW8iOiJFMmRnWURCM3JSWHRya3paWENVb1pyWDJkMlZUZVN0TFcwQ0p0SUwwOXoyLzdtcExkakRXTHdqV1VmNngzaTYyMUg1bGtzcEpBQT09IiwiYW1yIjpbInB3ZCJdLCJhcHBpZCI6Ijg3MWMwMTBmLTVlNjEtNGZiMS04M2FjLTk4NjEwYTdlOTExMCIsImFwcGlkYWNyIjoiMCIsImZhbWlseV9uYW1lIjoi7JykIiwiZ2l2ZW5fbmFtZSI6IuuMgO2biCIsImlkdHlwIjoidXNlciIsImlwYWRkciI6IjIxOC41MC4xMDMuMTEyIiwibmFtZSI6IuycpOuMgO2biCIsIm9pZCI6IjU4NGE4MTc3LWRjNDktNGMwMS1hOGJmLThlZmVlZmVkMDBhOSIsInB1aWQiOiIxMDAzMjAwMzk1QjdBOTU1IiwicmgiOiIwLkFTc0FrZTZOT3dfWnJrZUUwMFFTdXdYNFh3a0FBQUFBQUFBQXdBQUFBQUFBQUFBckFOcy4iLCJzY3AiOiJ1c2VyX2ltcGVyc29uYXRpb24iLCJzdWIiOiIyT3BVb3NBdlZoTThIX1F6dWxReGdqcS04dlYzV2k4SENkLWV3VWNLN0ljIiwidGlkIjoiM2I4ZGVlOTEtZDkwZi00N2FlLTg0ZDMtNDQxMmJiMDVmODVmIiwidW5pcXVlX25hbWUiOiJsaWFtLnlvb25AbmV4ci5jb20iLCJ1cG4iOiJsaWFtLnlvb25AbmV4ci5jb20iLCJ1dGkiOiJURXpUeTdFbHhrS2FKWUdzVmlPREFBIiwidmVyIjoiMS4wIiwid2lkcyI6WyJiNzlmYmY0ZC0zZWY5LTQ2ODktODE0My03NmIxOTRlODU1MDkiXSwieG1zX2lkcmVsIjoiMjggMSJ9.dO5HCmSvftm2AHifsClP4O1F_tIO7uBB_Mo88XRGuwz0IgQ0NVOdTvEIIQLVVwSqhFtIZB0MUoEzB_I60-ikE6n4rFc5AZSmb9MWHq5WU8NyERoqhIZZyobpkTOIQ1yItSme0YxQJCUjSwnXCykBtAj0VSOqbCpI-AupDcad4MYxoyItfWVI9PoP4jrCTJEZYjyH7D8GG4OZQCZG5TwCCm21qfB2ypKIripYJ52tFbw3Xi1hGEq3tNvevculXM6OYCcu-dIK6JzbQ7SbSk-O_T4C3SmNACjMhf0_gxT9EAnPtkgv80S5gLZQs8udZ2XXX9-XTNB_iAcxiglZ4NgaOg';
 
-
-const USER_ID = process.env.USER_ID;
-const PASSWORD = process.env.PASSWORD;
-
-let request: any = undefined;
-
-const generateAxios = (token) => {
-  const option = {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-    baseURL: 'https://api.powerbi.com/v1.0',
-  };
-  request = axios.create(option);
-
-  return request;
-}
-
-
-const getReports = async () => {
-  return await request.get(
-    '/myorg/reports',
-  );
-};
-
-const apiTest = async () => {
-  const response = await getReports();
-  console.log(response.data);
-};
-
-// page가 정상적으로 로드 될동안 wait 처리
-const pageLoaded = (d) => {
-  return d.wait(function () {
-    return d.executeScript('return document.readyState').then(function (readyState) {
-      return readyState === 'complete';
-    });
-  }, 6000);
-};
 
 (async () => {
-  const driver =
-    await new Builder().forBrowser(Browser.FIREFOX) // browser 설정
-      .setFirefoxOptions(
-        new fireFox.Options()
-          .addArguments('--headless') // headless 설정
-          .windowSize({ width: 640, height: 480 })
-      ).build();
-  try {
-    await driver.get('https://app.fabric.microsoft.com/'); // fabric 페이지 접근
+  // set token axios header
+  setToken(testToken);
 
-    await driver.wait(until.elementIsVisible(await driver.findElement(By.id('email'))), 6000);
-
-    // email 주소 입력
-    const email = await driver.findElement(By.id('email'));
-    email.sendKeys(USER_ID);
-
-    // 다음 버튼 클릭
-    await driver.findElement(By.id('submitBtn')).click();
-    await driver.sleep(1000); // wait 처리가 정상적으로 동작안하여 1초간 강제 wait
-    await pageLoaded(driver);
-
-    // 비밀번호 입력
-    const password = await driver.findElement(By.css('input[type=password]'));
-    password.sendKeys(PASSWORD);
-
-    // 로그인 버튼 클릭
-    await driver.findElement(By.css('input[type=submit]')).click();
-    await pageLoaded(driver);
-
-    // 자동로그인 관련 메뉴 submit
-    await driver.findElement(By.css('input[type=submit]')).click();
-    await driver.sleep(1000);
-    await pageLoaded(driver);
-
-    // 관리자 콘솔에서 토큰 정보 리턴
-    const token = await driver.executeScript('return powerBIAccessToken');
-
-    console.log('token', token);
-
-    // set token axios header
-    generateAxios(token);
-
-    // api test
-    await apiTest();
-  } finally {
-    await driver.quit();
-  }
+  // api test
+  await apiTest();
 })();
