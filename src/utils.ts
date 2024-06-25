@@ -4,6 +4,7 @@ import {Browser, Builder, By, until} from 'selenium-webdriver';
 import fireFox from 'selenium-webdriver/firefox';
 import fs from 'fs';
 import os from 'os';
+import CustomError from './CustomError';
 
 const USER_ID = process.env.USER_ID;
 const PASSWORD = process.env.PASSWORD;
@@ -40,13 +41,7 @@ export const setToken = (token) => {
 
 const errorHandler = async (error: AxiosError) => {
   const { response } = error;
-  if (response) {
-    if (response.status === 403) {
-      throw new Error('403');
-    }
-  }
-
-  throw new Error(error.message);
+  throw new CustomError(response);
 };
 
 request.interceptors.response.use((response) => response, errorHandler);
@@ -114,3 +109,23 @@ export const createToken = async () => {
     }
   }
 };
+
+export async function saveFile(response: any) {
+  const writer = fs.createWriteStream('test1.pdf');
+  return new Promise((resolve, reject) => {
+    response.data.pipe(writer);
+    let error: any = null;
+    writer.on('error', err => {
+      error = err;
+      writer.close();
+      reject(err);
+    });
+    writer.on('close', () => {
+      if (!error) {
+        resolve(true);
+      }
+      //no need to call the reject here, as it will have been called in the
+      //'error' stream;
+    });
+  });
+}

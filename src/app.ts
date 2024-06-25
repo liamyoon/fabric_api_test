@@ -1,5 +1,6 @@
 import {apiTest} from './apiTest';
 import {createToken, setToken} from './utils';
+import CustomError from './CustomError';
 const token = process.env.TOKEN;
 
 (async () => {
@@ -10,10 +11,15 @@ const token = process.env.TOKEN;
   try {
     await apiTest();
   } catch(e) {
-    console.log('토큰 재발급');
-    // 에러 발생 시 토큰 재발급 후 리트라이
-    const newToken = await createToken();
-    setToken(newToken);
-    await apiTest();
+    const error = e as CustomError;
+    if (error.status === 401 || error.status === 403) {
+      console.log('토큰 재발급');
+      // 에러 발생 시 토큰 재발급 후 리트라이
+      const newToken = await createToken();
+      setToken(newToken);
+      await apiTest();
+    }
+
+    console.log('error', error.error || error);
   }
 })();
