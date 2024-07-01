@@ -25,6 +25,18 @@ const getReport = async (reportId: string) => {
   );
 };
 
+const cloneReport = async (reportId: string) => {
+  return await request.post(
+    `/myorg/reports/${reportId}/Clone`,
+  );
+};
+
+const deleteReport = async (reportId: string) => {
+  return await request.delete(
+    `/myorg/reports/${reportId}/Clone`,
+  );
+};
+
 const exportReport = async (reportId: string) => {
   return await request.post(
     `/myorg/reports/${reportId}/Export`,
